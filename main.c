@@ -1,4 +1,5 @@
 #include "SDL.h"
+#include "SDL_image.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -32,6 +33,8 @@ int main(int argc, char* argv[]) {
             linked.major, linked.minor, linked.patch);
 
     SDL_Init(SDL_INIT_VIDEO);
+
+    IMG_Init(0x0);
 
     int width = 640;
     int height = 480;
@@ -222,6 +225,8 @@ int main(int argc, char* argv[]) {
     }
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+
+    IMG_Quit();
     SDL_Quit();
     return 0;
 }

@@ -41,7 +41,8 @@ android {
 }
 
 dependencies {
-    implementation files('libs/sdl2-2.25.0.aar')
+    implementation files('libs/SDL2-2.25.0.aar')
+    implementation files('libs/SDL2_image-2.7.0.aar')
     implementation 'androidx.appcompat:appcompat:1.5.1'
 }
 
