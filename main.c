@@ -32,9 +32,17 @@ int main(int argc, char* argv[]) {
     SDL_Log("But we are linking against SDL version %u.%u.%u.\n",
             linked.major, linked.minor, linked.patch);
 
-    SDL_Init(SDL_INIT_VIDEO);
+    int r = SDL_Init(SDL_INIT_VIDEO);
+    if (r < 0) {
+        SDL_Log("SDL_Init failed with message=%s (r=%d)", SDL_GetError(), r);
+        return 1;
+    }
 
-    IMG_Init(0x0);
+    r = IMG_Init(IMG_INIT_PNG);
+    if (r != IMG_INIT_PNG) {
+        SDL_Log("IMG_INit failed with message=%s (r=%d)", IMG_GetError(), r);
+        return 1;
+    }
 
     int width = 640;
     int height = 480;
