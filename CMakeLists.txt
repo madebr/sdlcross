@@ -16,7 +16,13 @@ if(ANDROID)
 else()
     add_executable(sdlcross main.c)
 endif()
-target_link_libraries(sdlcross PRIVATE SDL2::SDL2 SDL2::SDL2main SDL2_image::SDL2_image)
+target_link_libraries(sdlcross PRIVATE SDL2::SDL2main SDL2_image::SDL2_image SDL2::SDL2)
 set_target_properties(sdlcross PROPERTIES
     CXX_STANDARD 11
 )
+
+# Explicitly link to libpng to force libpng16.so to be added to the .apk
+# FIXME: how can this be avoided?
+if(TARGET SDL2_image::external_libpng)
+    target_link_libraries(sdlcross PRIVATE SDL2_image::external_libpng)
+endif()
