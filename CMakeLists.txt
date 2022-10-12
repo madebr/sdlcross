@@ -3,10 +3,14 @@ project(sdlcross C)
 
 find_package(SDL2 REQUIRED CONFIG)
 find_package(SDL2_image CONFIG)
+find_package(SDL2_mixer CONFIG)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 if(NOT SDL2_image_FOUND)
     find_package(SDL2_image REQUIRED)
+endif()
+if(NOT SDL2_mixer_FOUND)
+    find_package(SDL2_mixer REQUIRED)
 endif()
 
 if(ANDROID)
@@ -16,13 +20,24 @@ if(ANDROID)
 else()
     add_executable(sdlcross main.c)
 endif()
-target_link_libraries(sdlcross PRIVATE SDL2::SDL2main SDL2_image::SDL2_image SDL2::SDL2)
+target_link_libraries(sdlcross PRIVATE SDL2::SDL2main SDL2_mixer::SDL2_mixer SDL2_image::SDL2_image SDL2::SDL2)
 set_target_properties(sdlcross PROPERTIES
     CXX_STANDARD 11
 )
 
-# Explicitly link to libpng to force libpng16.so to be added to the .apk
-# FIXME: how can this be avoided?
-if(TARGET SDL2_image::external_libpng)
-    target_link_libraries(sdlcross PRIVATE SDL2_image::external_libpng)
+if(ANDROID)
+    # Explicitly link to libpng to force libpng16.so to be added to the .apk
+    # FIXME: how can this be avoided?
+    if(TARGET SDL2_image::external_libpng)
+        target_link_libraries(sdlcross PRIVATE SDL2_image::external_libpng)
+    endif()
+    if(TARGET SDL2_mixer::external_libflac)
+        target_link_libraries(sdlcross PRIVATE SDL2_mixer::external_libflac)
+    endif()
+    if(TARGET SDL2_mixer::external_libopusfile)
+        target_link_libraries(sdlcross PRIVATE SDL2_mixer::external_libopusfile)
+    endif()
+    if(TARGET SDL2_mixer::external_libmpg123)
+        target_link_libraries(sdlcross PRIVATE SDL2_mixer::external_libmpg123)
+    endif()
 endif()

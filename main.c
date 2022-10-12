@@ -1,5 +1,6 @@
 #include "SDL.h"
 #include "SDL_image.h"
+#include "SDL_mixer.h"
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -32,6 +33,9 @@ int main(int argc, char* argv[]) {
     SDL_Log("But we are linking against SDL version %u.%u.%u.\n",
             linked.major, linked.minor, linked.patch);
 
+    SDL_SetHint("SDL_MIXER_DISABLE_DRFLAC", "1");
+    SDL_SetHint("SDL_MIXER_DISABLE_DRMP3", "1");
+
     int r = SDL_Init(SDL_INIT_VIDEO);
     if (r < 0) {
         SDL_Log("SDL_Init failed with message=%s (r=%d)", SDL_GetError(), r);
@@ -41,6 +45,12 @@ int main(int argc, char* argv[]) {
     r = IMG_Init(IMG_INIT_PNG);
     if (r != IMG_INIT_PNG) {
         SDL_Log("IMG_INit failed with message=%s (r=%d)", IMG_GetError(), r);
+        return 1;
+    }
+
+    r = Mix_Init(MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS);
+    if (r != (MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS)) {
+        SDL_Log("Mix_Init failed with message=%s (r=%d)", Mix_GetError(), r);
         return 1;
     }
 
@@ -234,6 +244,7 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
+    Mix_Quit();
     IMG_Quit();
     SDL_Quit();
     return 0;
