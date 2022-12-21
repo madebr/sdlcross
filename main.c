@@ -1,6 +1,12 @@
+#if defined(TARGET_SDL3)
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+#else
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_mixer.h"
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -42,6 +48,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+#if !defined(TARGET_SDL3)
     r = IMG_Init(IMG_INIT_PNG);
     if (r != IMG_INIT_PNG) {
         SDL_Log("IMG_INit failed with message=%s (r=%d)", IMG_GetError(), r);
@@ -53,6 +60,7 @@ int main(int argc, char* argv[]) {
         SDL_Log("Mix_Init failed with message=%s (r=%d)", Mix_GetError(), r);
         return 1;
     }
+#endif
 
     int width = 640;
     int height = 480;
@@ -78,7 +86,11 @@ int main(int argc, char* argv[]) {
     SDL_Log("Window created!");
 
     SDL_Renderer* renderer = NULL;
+#if defined(TARGET_SDL3)
+    renderer =  SDL_CreateRenderer( window, NULL, SDL_RENDERER_ACCELERATED);
+#else
     renderer =  SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
+#endif
     if (renderer == NULL) {
         show_important_message(5, "Could not create renderer: %s", SDL_GetError());
         return 1;
@@ -244,8 +256,10 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
+#if !defined(TARGET_SDL3)
     Mix_Quit();
     IMG_Quit();
+#endif
     SDL_Quit();
     return 0;
 }
