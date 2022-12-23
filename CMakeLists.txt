@@ -36,6 +36,9 @@ endif()
 set_target_properties(sdlcross PROPERTIES
     CXX_STANDARD 11
 )
+if(NOT MSVC)
+    target_compile_options(sdlcross PRIVATE -Wall -Wextra -Werror)
+endif()
 
 if(ANDROID)
     if(TARGET_SDL3)

@@ -22,6 +22,7 @@ static void show_important_message(int duration, const char *format, ...) {
     SDL_AndroidShowToast(buffer, duration, -1, 0, 0);
 #else
     va_list ap;
+    (void)duration;
     va_start(ap, format);
     SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, format, ap);
     va_end(ap);
@@ -31,6 +32,9 @@ static void show_important_message(int duration, const char *format, ...) {
 int main(int argc, char* argv[]) {
     SDL_version compiled;
     SDL_version linked;
+
+    (void)argc;
+    (void)argv;
 
     SDL_VERSION(&compiled);
     SDL_GetVersion(&linked);
@@ -137,8 +141,8 @@ int main(int argc, char* argv[]) {
                 case SDL_QUIT:
                     quit = 1;
                     break;
-                case SDL_DISPLAYEVENT:
-                    switch (event.display.event) {
+//                case SDL_DISPLAYEVENT:
+//                    switch (event.display.event) {
                         case SDL_DISPLAYEVENT_ORIENTATION:
                             switch (event.display.data1) {
                                 case SDL_ORIENTATION_LANDSCAPE:
@@ -154,9 +158,11 @@ int main(int argc, char* argv[]) {
                                     show_important_message(1, "portrait (flipped)");
                                     break;
                             }
-                    }
-                case SDL_WINDOWEVENT:
-                    switch (event.window.event) {
+                            break;
+//                    }
+//                    break;
+//                case SDL_WINDOWEVENT:
+//                    switch (event.window.event) {
                         case SDL_WINDOWEVENT_SIZE_CHANGED:
                             width = event.window.data1;
                             height = event.window.data2;
@@ -167,12 +173,12 @@ int main(int argc, char* argv[]) {
                         case SDL_WINDOWEVENT_HIDDEN:
                             foreground = 0;
                             break;
-                    }
-                    break;
+//                    }
+//                    break;
 #if !defined(__ANDROID__)
                 case SDL_MOUSEBUTTONDOWN:
                     SDL_Log("mouse button down: which=%d, [%d, %d]", event.button.which, event.button.x, event.button.y);
-                    if (event.button.which >= 0 && event.button.which < ARRAY_SIZE(locations)) {
+                    if (event.button.which < ARRAY_SIZE(locations)) {
                         locations[event.button.which].valid = 1;
                         locations[event.button.which].rect.x = event.button.x - RECT_W/2;
                         locations[event.button.which].rect.y = event.button.y - RECT_W/2;
@@ -180,13 +186,13 @@ int main(int argc, char* argv[]) {
                     break;
                 case SDL_MOUSEBUTTONUP:
                     SDL_Log("mouse button up: which=%d, [%d, %d]", event.button.which, event.button.x, event.button.y);
-                    if (event.button.which >= 0 && event.button.which < ARRAY_SIZE(locations)) {
+                    if (event.button.which < ARRAY_SIZE(locations)) {
                         locations[event.button.which].valid = 0;
                     }
                     break;
                 case SDL_MOUSEMOTION:
                     SDL_Log("mouse move: button=%d", event.motion.which);
-                    if (event.button.which >= 0 && event.button.which < ARRAY_SIZE(locations)) {
+                    if (event.button.which < ARRAY_SIZE(locations)) {
                         locations[event.button.which].rect.x = event.motion.x - RECT_W/2;
                         locations[event.button.which].rect.y = event.motion.y - RECT_W/2;
                     }
@@ -200,22 +206,22 @@ int main(int argc, char* argv[]) {
 #endif
 #if defined(ANDROID)
                 case SDL_FINGERDOWN:
-                    SDL_Log("finger down: fingerId=%lld, [%f, %f]", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
-                    if (event.tfinger.fingerId >= 0 && event.tfinger.fingerId < ARRAY_SIZE(locations)) {
+                    SDL_Log("finger down: fingerId=%d, [%f, %f]", (int)event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
+                    if (event.tfinger.fingerId >= 0 && event.tfinger.fingerId < (int)ARRAY_SIZE(locations)) {
                         locations[event.tfinger.fingerId].valid = 1;
                         locations[event.tfinger.fingerId].rect.x = width * event.tfinger.x - RECT_W/2;
                         locations[event.tfinger.fingerId].rect.y = height * event.tfinger.y - RECT_W/2;
                     }
                     break;
                 case SDL_FINGERUP:
-                    SDL_Log("mouse button up: fingerId=%lld, [%f, %f]", event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
-                    if (event.tfinger.fingerId >= 0 && event.tfinger.fingerId < ARRAY_SIZE(locations)) {
+                    SDL_Log("mouse button up: fingerId=%d, [%f, %f]", (int)event.tfinger.fingerId, event.tfinger.x, event.tfinger.y);
+                    if (event.tfinger.fingerId >= 0 && event.tfinger.fingerId < (int)ARRAY_SIZE(locations)) {
                         locations[event.tfinger.fingerId].valid = 0;
                     }
                     break;
                 case SDL_FINGERMOTION:
                     SDL_Log("mouse move: button=%d", event.motion.which);
-                    if (event.tfinger.fingerId >= 0 && event.tfinger.fingerId < ARRAY_SIZE(locations)) {
+                    if (event.tfinger.fingerId >= 0 && event.tfinger.fingerId < (int)ARRAY_SIZE(locations)) {
                         locations[event.tfinger.fingerId].rect.x = width * event.tfinger.x - RECT_W/2;
                         locations[event.tfinger.fingerId].rect.y = height * event.tfinger.y - RECT_W/2;
                     }
