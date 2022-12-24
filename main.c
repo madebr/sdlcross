@@ -1,10 +1,11 @@
-#if defined(TARGET_SDL3)
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-#else
-#include "SDL.h"
-#include "SDL_image.h"
-#include "SDL_mixer.h"
+
+#if defined(WITH_IMAGE)
+#include <SDL3/SDL_image.h>
+#endif
+#if defined(WITH_MIXER)
+#include <SDL3/SDL_mixer.h>
 #endif
 
 #include <stdarg.h>
@@ -52,13 +53,15 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-#if !defined(TARGET_SDL3)
+#if defined(WITH_IMAGE)
     r = IMG_Init(IMG_INIT_PNG);
     if (r != IMG_INIT_PNG) {
         SDL_Log("IMG_INit failed with message=%s (r=%d)", IMG_GetError(), r);
         return 1;
     }
+#endif
 
+#if defined(WITH_MIXER)
     r = Mix_Init(MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS);
     if (r != (MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS)) {
         SDL_Log("Mix_Init failed with message=%s (r=%d)", Mix_GetError(), r);
@@ -73,9 +76,12 @@ int main(int argc, char* argv[]) {
     flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 #endif
 
+    char title[32];
     SDL_Window *window;
+
+    SDL_snprintf(title, sizeof(title), "An SDL %d.%d.%d window", linked.major, linked.minor, linked.patch);
     window = SDL_CreateWindow(
-            "An SDL2 window",
+            title,
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
             width,
@@ -90,11 +96,7 @@ int main(int argc, char* argv[]) {
     SDL_Log("Window created!");
 
     SDL_Renderer* renderer = NULL;
-#if defined(TARGET_SDL3)
     renderer =  SDL_CreateRenderer( window, NULL, SDL_RENDERER_ACCELERATED);
-#else
-    renderer =  SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED);
-#endif
     if (renderer == NULL) {
         show_important_message(5, "Could not create renderer: %s", SDL_GetError());
         return 1;
@@ -141,40 +143,32 @@ int main(int argc, char* argv[]) {
                 case SDL_QUIT:
                     quit = 1;
                     break;
-//                case SDL_DISPLAYEVENT:
-//                    switch (event.display.event) {
-                        case SDL_DISPLAYEVENT_ORIENTATION:
-                            switch (event.display.data1) {
-                                case SDL_ORIENTATION_LANDSCAPE:
-                                    show_important_message(1, "landscape");
-                                    break;
-                                case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
-                                    show_important_message(1, "landscape (flipped)");
-                                    break;
-                                case SDL_ORIENTATION_PORTRAIT:
-                                    show_important_message(1, "portrait");
-                                    break;
-                                case SDL_ORIENTATION_PORTRAIT_FLIPPED:
-                                    show_important_message(1, "portrait (flipped)");
-                                    break;
-                            }
+                case SDL_DISPLAYEVENT_ORIENTATION:
+                    switch (event.display.data1) {
+                        case SDL_ORIENTATION_LANDSCAPE:
+                            show_important_message(1, "landscape");
                             break;
-//                    }
-//                    break;
-//                case SDL_WINDOWEVENT:
-//                    switch (event.window.event) {
-                        case SDL_WINDOWEVENT_SIZE_CHANGED:
-                            width = event.window.data1;
-                            height = event.window.data2;
+                        case SDL_ORIENTATION_LANDSCAPE_FLIPPED:
+                            show_important_message(1, "landscape (flipped)");
                             break;
-                        case SDL_WINDOWEVENT_SHOWN:
-                            foreground = 1;
+                        case SDL_ORIENTATION_PORTRAIT:
+                            show_important_message(1, "portrait");
                             break;
-                        case SDL_WINDOWEVENT_HIDDEN:
-                            foreground = 0;
+                        case SDL_ORIENTATION_PORTRAIT_FLIPPED:
+                            show_important_message(1, "portrait (flipped)");
                             break;
-//                    }
-//                    break;
+                    }
+                    break;
+                case SDL_WINDOWEVENT_SIZE_CHANGED:
+                    width = event.window.data1;
+                    height = event.window.data2;
+                    break;
+                case SDL_WINDOWEVENT_SHOWN:
+                    foreground = 1;
+                    break;
+                case SDL_WINDOWEVENT_HIDDEN:
+                    foreground = 0;
+                    break;
 #if !defined(__ANDROID__)
                 case SDL_MOUSEBUTTONDOWN:
                     SDL_Log("mouse button down: which=%d, [%d, %d]", event.button.which, event.button.x, event.button.y);
@@ -262,8 +256,10 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
-#if !defined(TARGET_SDL3)
+#if defined(WITH_MIXER)
     Mix_Quit();
+#endif
+#if defined(WITH_IMAGE)
     IMG_Quit();
 #endif
     SDL_Quit();

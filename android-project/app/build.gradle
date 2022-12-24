@@ -14,7 +14,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=c++_shared', '-DTARGET_SDL3=ON'
+                arguments '-DANDROID_STL=c++_shared', '-DWITH_IMAGE=OFF', '-DWITH_MIXER=OFF'
             }
         }
     }
@@ -42,9 +42,6 @@ android {
 
 dependencies {
     implementation files('libs/SDL3-3.0.0.aar')
-//    implementation files('libs/SDL2-2.25.0.aar')
-//    implementation files('libs/SDL2_image-2.7.0.aar')
-//    implementation files('libs/SDL2_mixer-2.7.0.aar')
     implementation 'androidx.appcompat:appcompat:1.5.1'
 }
 

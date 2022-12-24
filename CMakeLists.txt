@@ -1,22 +1,17 @@
 cmake_minimum_required(VERSION 3.0)
 project(sdlcross C)
 
-option(TARGET_SDL3 "Use SDL3" OFF)
+option(WITH_IMAGE "Enable SDL3_image" OFF)
+option(WITH_MIXER "Enable SDL3_mixer" OFF)
 
-if(TARGET_SDL3)
-    find_package(SDL3 REQUIRED CONFIG)
-else()
-    find_package(SDL2 REQUIRED CONFIG)
-    find_package(SDL2_image CONFIG)
-    find_package(SDL2_mixer CONFIG)
+find_package(SDL3 REQUIRED CONFIG)
 
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-    if(NOT SDL2_image_FOUND)
-        find_package(SDL2_image REQUIRED)
-    endif()
-    if(NOT SDL2_mixer_FOUND)
-        find_package(SDL2_mixer REQUIRED)
-    endif()
+if(WITH_IMAGE)
+    find_package(SDL3_image CONFIG REQUIRED)
+endif()
+
+if(WITH_MIXER)
+    find_package(SDL3_mixer CONFIG REQUIRED)
 endif()
 
 if(ANDROID)
@@ -27,12 +22,18 @@ else()
     add_executable(sdlcross main.c)
 endif()
 
-if(TARGET_SDL3)
-    target_compile_definitions(sdlcross PRIVATE TARGET_SDL3)
-    target_link_libraries(sdlcross PRIVATE SDL3::SDL3)
-else()
-    target_link_libraries(sdlcross PRIVATE SDL2::SDL2main SDL2_mixer::SDL2_mixer SDL2_image::SDL2_image SDL2::SDL2)
+if(WITH_IMAGE)
+    target_compile_definitions(sdlcross PRIVATE WITH_IMAGE)
+    target_link_libraries(sdlcross PRIVATE SDL3_image::SDL3_image)
 endif()
+
+if(WITH_MIXER)
+    target_compile_definitions(sdlcross PRIVATE WITH_MIXER)
+    target_link_libraries(sdlcross PRIVATE SDL3_mixer::SDL3_mixer)
+endif()
+
+target_link_libraries(sdlcross PRIVATE SDL3::SDL3)
+
 set_target_properties(sdlcross PROPERTIES
     CXX_STANDARD 11
 )
@@ -41,13 +42,14 @@ if(NOT MSVC)
 endif()
 
 if(ANDROID)
-    if(TARGET_SDL3)
-    else()
+    if(WITH_IMAGE)
         # Explicitly link to libpng to force libpng16.so to be added to the .apk
         # FIXME: how can this be avoided?
         if(TARGET SDL2_image::external_libpng)
             target_link_libraries(sdlcross PRIVATE SDL2_image::external_libpng)
         endif()
+    endif()
+    if(WITH_MIXER)
         if(TARGET SDL2_mixer::external_libflac)
             target_link_libraries(sdlcross PRIVATE SDL2_mixer::external_libflac)
         endif()
