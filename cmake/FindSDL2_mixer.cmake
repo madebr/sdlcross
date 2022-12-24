@@ -2,7 +2,7 @@ if(WIN32 OR OS2)
     message(FATAL_ERROR "This module does not (yet) support Windows")
 endif()
 
-find_library(SDL2_mixer_INCLUDE_DIR
+find_path(SDL2_mixer_INCLUDE_DIR
     NAMES SDL_mixer.h
     SUFFIXES SDL2
 )
