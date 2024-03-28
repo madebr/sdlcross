@@ -16,10 +16,10 @@ endif()
 
 if(ANDROID)
     enable_language(CXX)
-    add_library(sdlcross SHARED main.c)
+    add_library(sdlcross SHARED src/main.c)
     set_target_properties(sdlcross PROPERTIES LINKER_LANGUAGE CXX)
 else()
-    add_executable(sdlcross main.c)
+    add_executable(sdlcross src/main.c)
 endif()
 
 if(WITH_IMAGE)
