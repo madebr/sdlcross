@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     SDL_Log("Window created!");
 
     SDL_Renderer* renderer = NULL;
-    renderer =  SDL_CreateRenderer( window, NULL, SDL_RENDERER_ACCELERATED);
+    renderer =  SDL_CreateRenderer(window, NULL, 0);
     if (renderer == NULL) {
         show_important_message(5, "Could not create renderer: %s", SDL_GetError());
         return 1;
