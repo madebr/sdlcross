@@ -31,18 +31,16 @@ static void show_important_message(int duration, const char *format, ...) {
 }
 
 int main(int argc, char* argv[]) {
-    SDL_Version compiled;
-    SDL_Version linked;
+    int linked_version;
 
     (void)argc;
     (void)argv;
 
-    SDL_VERSION(&compiled);
-    SDL_GetVersion(&linked);
+    linked_version = SDL_GetVersion();
     SDL_Log("We compiled against SDL version %u.%u.%u ...\n",
-            compiled.major, compiled.minor, compiled.patch);
+            SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
     SDL_Log("But we are linking against SDL version %u.%u.%u.\n",
-            linked.major, linked.minor, linked.patch);
+            SDL_VERSIONNUM_MAJOR(linked_version), SDL_VERSIONNUM_MINOR(linked_version), SDL_VERSIONNUM_MICRO(linked_version));
 
     SDL_SetHint("SDL_MIXER_DISABLE_DRFLAC", "1");
     SDL_SetHint("SDL_MIXER_DISABLE_DRMP3", "1");
@@ -79,7 +77,8 @@ int main(int argc, char* argv[]) {
     char title[32];
     SDL_Window *window;
 
-    SDL_snprintf(title, sizeof(title), "An SDL %d.%d.%d window", linked.major, linked.minor, linked.patch);
+    SDL_snprintf(title, sizeof(title), "An SDL %d.%d.%d window",
+                 SDL_VERSIONNUM_MAJOR(linked_version), SDL_VERSIONNUM_MINOR(linked_version), SDL_VERSIONNUM_MICRO(linked_version));
     window = SDL_CreateWindow(
             title,
             width,
@@ -94,7 +93,7 @@ int main(int argc, char* argv[]) {
     SDL_Log("Window created!");
 
     SDL_Renderer* renderer = NULL;
-    renderer =  SDL_CreateRenderer(window, NULL, 0);
+    renderer =  SDL_CreateRenderer(window, NULL);
     if (renderer == NULL) {
         show_important_message(5, "Could not create renderer: %s", SDL_GetError());
         return 1;
