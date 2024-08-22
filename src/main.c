@@ -20,7 +20,7 @@ static void show_important_message(int duration, const char *format, ...) {
     va_start(ap, format);
     vsnprintf(buffer, sizeof(buffer), format, ap);
     va_end(ap);
-    SDL_AndroidShowToast(buffer, duration, -1, 0, 0);
+    SDL_ShowAndroidToast(buffer, duration, -1, 0, 0);
 #else
     va_list ap;
     (void)duration;
