@@ -223,12 +223,12 @@ int main(int argc, char* argv[]) {
                     break;
 #endif
                 case SDL_EVENT_KEY_UP:
-                    switch (event.key.keysym.sym) {
+                    switch (event.key.key) {
                         case SDLK_ESCAPE:
                             quit = 1;
                             break;
                         case SDLK_RETURN:
-                            if (event.key.keysym.mod & SDL_KMOD_ALT) {
+                            if (event.key.mod & SDL_KMOD_ALT) {
                                 fullscreen = !fullscreen;
                                 SDL_SetWindowFullscreen(window, fullscreen);
                             }

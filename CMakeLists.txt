@@ -32,7 +32,7 @@ if(WITH_MIXER)
     target_link_libraries(sdlcross PRIVATE SDL3_mixer::SDL3_mixer)
 endif()
 
-target_link_libraries(sdlcross PRIVATE SDL3::SDL3-shared)
+target_link_libraries(sdlcross PRIVATE SDL3::SDL3)
 
 set_target_properties(sdlcross PROPERTIES
     CXX_STANDARD 11
