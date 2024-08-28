@@ -45,25 +45,28 @@ int main(int argc, char* argv[]) {
     SDL_SetHint("SDL_MIXER_DISABLE_DRFLAC", "1");
     SDL_SetHint("SDL_MIXER_DISABLE_DRMP3", "1");
 
-    int r = SDL_Init(SDL_INIT_VIDEO);
-    if (r < 0) {
-        SDL_Log("SDL_Init failed with message=%s (r=%d)", SDL_GetError(), r);
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        SDL_Log("SDL_Init failed (%s)", SDL_GetError());
         return 1;
     }
 
 #if defined(WITH_IMAGE)
-    r = IMG_Init(IMG_INIT_PNG);
-    if (r != IMG_INIT_PNG) {
-        SDL_Log("IMG_INit failed with message=%s (r=%d)", IMG_GetError(), r);
-        return 1;
+    {
+        int r = IMG_Init(IMG_INIT_PNG);
+        if (r != IMG_INIT_PNG) {
+            SDL_Log("IMG_INit failed with message=%s (r=%d)", IMG_GetError(), r);
+            return 1;
+        }
     }
 #endif
 
 #if defined(WITH_MIXER)
-    r = Mix_Init(MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS);
-    if (r != (MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS)) {
-        SDL_Log("Mix_Init failed with message=%s (r=%d)", Mix_GetError(), r);
-        return 1;
+    {
+        int r = Mix_Init(MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS);
+        if (r != (MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS)) {
+            SDL_Log("Mix_Init failed with message=%s (r=%d)", Mix_GetError(), r);
+            return 1;
+        }
     }
 #endif
 
