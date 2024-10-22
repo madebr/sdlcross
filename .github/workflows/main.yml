@@ -1,0 +1,70 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  desktop:
+    name: ${{ matrix.platform.name }}
+    runs-on: ${{ matrix.platform.os }}
+
+    strategy:
+      matrix:
+        platform:
+          - { name: Linux,   os: ubuntu-latest }
+          - { name: Windows, os: windows-latest }
+          - { name: MacOS,   os: macos-latest }
+
+    steps:
+      - name: Set up SDL
+        id: sdl
+        uses: libsdl-org/setup-sdl@main
+        with:
+          version: sdl3-head
+      - name: Get project sources
+        uses: actions/checkout@v4
+      - name: Build SDL
+        uses: libsdl-org/setup-sdl@main
+      - name: Configure (CMake)
+        run: cmake -B build
+      - name: Build (CMake)
+        run: cmake --build build/
+
+  emscripten:
+    name: Emscripten
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get project sources
+        uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@master
+      - name: Build SDL
+        id: sdl
+        uses: libsdl-org/setup-sdl@main
+        with:
+          version: sdl3-head
+          cmake-toolchain-file: ${{ env.EMSDK }}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+      - name: Configure (CMake)
+        run: cmake -B build -DCMAKE_TOOLCHAIN_FILE=${{ env.EMSDK }}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_FIND_ROOT_PATH=${{ steps.sdl.outputs.prefix }}
+      - name: Build (CMake)
+        run: cmake --build build/
+
+  android:
+    name: Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get project sources
+        uses: actions/checkout@v4
+      - name: Setup ndk toolchain
+        uses: nttld/setup-ndk@v1
+        with:
+          local-cache: true
+          ndk-version: r21e
+      - name: Download dependencies
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run:
+          gh -R libsdl-org/SDL release download preview-3.1.3 -D app/libs -p '*.aar'
+      - name: Build gradle project
+        run: |
+          ./gradlew -i assembleRelease

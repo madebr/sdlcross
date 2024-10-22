@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.20)
 project(sdlcross C)
 
 option(WITH_IMAGE "Enable SDL3_image" OFF)
