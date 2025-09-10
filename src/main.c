@@ -2,10 +2,10 @@
 #include <SDL3/SDL_main.h>
 
 #if defined(WITH_IMAGE)
-#include <SDL3/SDL_image.h>
+#include <SDL3_image/SDL_image.h>
 #endif
 #if defined(WITH_MIXER)
-#include <SDL3/SDL_mixer.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #endif
 
 #include <stdarg.h>
@@ -52,21 +52,15 @@ int main(int argc, char* argv[]) {
 
 #if defined(WITH_IMAGE)
     {
-        int r = IMG_Init(IMG_INIT_PNG);
-        if (r != IMG_INIT_PNG) {
-            SDL_Log("IMG_INit failed with message=%s (r=%d)", IMG_GetError(), r);
-            return 1;
-        }
+        int v = IMG_Version();
+        SDL_Log("SDL3_image version %d.%d.%d", SDL_VERSIONNUM_MAJOR(v), SDL_VERSIONNUM_MINOR(v), SDL_VERSIONNUM_MICRO(v));
     }
 #endif
 
 #if defined(WITH_MIXER)
     {
-        int r = Mix_Init(MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS);
-        if (r != (MIX_INIT_FLAC | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS)) {
-            SDL_Log("Mix_Init failed with message=%s (r=%d)", Mix_GetError(), r);
-            return 1;
-        }
+        int v = MIX_Version();
+        SDL_Log("SDL3_mixer version %d.%d.%d", SDL_VERSIONNUM_MAJOR(v), SDL_VERSIONNUM_MINOR(v), SDL_VERSIONNUM_MICRO(v));
     }
 #endif
 
@@ -256,12 +250,6 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
-#if defined(WITH_MIXER)
-    Mix_Quit();
-#endif
-#if defined(WITH_IMAGE)
-    IMG_Quit();
-#endif
     SDL_Quit();
     return 0;
 }
