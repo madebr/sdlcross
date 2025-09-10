@@ -17,7 +17,7 @@
 #define ARRAY_SIZE(ARR) ((sizeof(ARR)) / (sizeof(*(ARR))))
 
 static void show_important_message(int duration, const char *format, ...) {
-#if defined(__ANDROID__)
+#if defined(SDL_PLATFORM_ANDROID)
     char buffer[256];
     va_list ap;
     va_start(ap, format);
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     int width = 640;
     int height = 480;
     int flags = SDL_WINDOW_RESIZABLE;
-#if defined(__ANDROID__)
+#if defined(SDL_PLATFORM_ANDROID)
     flags |= SDL_WINDOW_FULLSCREEN;
 #endif
 
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         SDL_FRect rect;
     } locations[10];
 
-#ifdef __ANDROID__
+#ifdef SDL_PLATFORM_ANDROID
 #define RECT_W 250
 #else
 #define RECT_W 50
@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
                 case SDL_EVENT_WINDOW_HIDDEN:
                     foreground = 0;
                     break;
-#if !defined(__ANDROID__)
+#if !defined(SDL_PLATFORM_ANDROID)
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
                     SDL_Log("mouse button down: which=%d, [%g, %g]", event.button.which, event.button.x, event.button.y);
                     if (event.button.which < ARRAY_SIZE(locations)) {
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
                     foreground = 1;
                     break;
 #endif
-#if defined(ANDROID)
+#if defined(SDL_PLATFORM_ANDROID)
                 case SDL_EVENT_FINGER_DOWN:
                     SDL_Log("finger down: fingerID=%d, [%f, %f]", (int)event.tfinger.fingerID, event.tfinger.x, event.tfinger.y);
                     if (event.tfinger.fingerID >= 0 && event.tfinger.fingerID < (int)ARRAY_SIZE(locations)) {
