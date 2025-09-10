@@ -14,7 +14,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=c++_shared', '-DWITH_IMAGE=OFF', '-DWITH_MIXER=OFF'
+                arguments '-DANDROID_STL=c++_shared', '-DWITH_IMAGE=ON', '-DWITH_MIXER=OFF', '-DWITH_NET=OFF'
                 // abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
                 // abiFilters 'arm64-v8a'
             }
@@ -43,6 +43,7 @@ android {
 }
 
 dependencies {
-    implementation files('libs/SDL3-3.1.3.aar')
+    implementation files('libs/SDL3-3.2.22.aar')
+    implementation files('libs/SDL3_image-3.2.4.aar')
     implementation 'androidx.appcompat:appcompat:1.5.1'
 }

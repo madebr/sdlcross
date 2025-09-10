@@ -63,8 +63,15 @@ jobs:
       - name: Download dependencies
         env:
           GH_TOKEN: ${{ github.token }}
-        run:
-          gh -R libsdl-org/SDL release download preview-3.1.3 -D app/libs -p '*.aar'
+        run: |
+          sdl_version=3.2.22
+          sdl_mixer_version=3.2.4
+
+          gh -R libsdl-org/SDL release download release-${sdl_version} -p 'SDL3-devel-*-android.zip'
+          unzip "SDL3-devel-${sdl_version}-android.zip" -d app/libs SDL3-${sdl_version}.aar
+
+          gh -R libsdl-org/SDL_image release download release-${sdl_mixer_version} -p 'SDL3_image-devel-*-android.zip'
+          unzip "SDL3_image-devel-${sdl_mixer_version}-android.zip" -d app/libs SDL3_image-${sdl_mixer_version}.aar
       - name: Build gradle project
         run: |
           ./gradlew -i assembleRelease
