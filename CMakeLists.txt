@@ -3,6 +3,7 @@ project(sdlcross C)
 
 option(WITH_IMAGE "Enable SDL3_image" OFF)
 option(WITH_MIXER "Enable SDL3_mixer" OFF)
+option(WITH_NET "Enable SDL3_net" OFF)
 
 find_package(SDL3 REQUIRED CONFIG)
 
@@ -12,6 +13,10 @@ endif()
 
 if(WITH_MIXER)
     find_package(SDL3_mixer CONFIG REQUIRED)
+endif()
+
+if(WITH_NET)
+    find_package(SDL3_net CONFIG REQUIRED)
 endif()
 
 if(ANDROID)
@@ -30,6 +35,11 @@ endif()
 if(WITH_MIXER)
     target_compile_definitions(sdlcross PRIVATE WITH_MIXER)
     target_link_libraries(sdlcross PRIVATE SDL3_mixer::SDL3_mixer)
+endif()
+
+if(WITH_NET)
+    target_compile_definitions(sdlcross PRIVATE WITH_NET)
+    target_link_libraries(sdlcross PRIVATE SDL3_net::SDL3_net)
 endif()
 
 target_link_libraries(sdlcross PRIVATE SDL3::SDL3)

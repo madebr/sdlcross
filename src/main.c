@@ -7,6 +7,9 @@
 #if defined(WITH_MIXER)
 #include <SDL3_mixer/SDL_mixer.h>
 #endif
+#if defined(WITH_NET)
+#include <SDL3_net/SDL_net.h>
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -61,6 +64,13 @@ int main(int argc, char* argv[]) {
     {
         int v = MIX_Version();
         SDL_Log("SDL3_mixer version %d.%d.%d", SDL_VERSIONNUM_MAJOR(v), SDL_VERSIONNUM_MINOR(v), SDL_VERSIONNUM_MICRO(v));
+    }
+#endif
+
+#if defined(WITH_NET)
+    {
+        int v = NET_Version();
+        SDL_Log("SDL3_net version %d.%d.%d", SDL_VERSIONNUM_MAJOR(v), SDL_VERSIONNUM_MINOR(v), SDL_VERSIONNUM_MICRO(v));
     }
 #endif
 
