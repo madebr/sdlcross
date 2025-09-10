@@ -55,11 +55,6 @@ jobs:
     steps:
       - name: Get project sources
         uses: actions/checkout@v4
-      - name: Setup ndk toolchain
-        uses: nttld/setup-ndk@v1
-        with:
-          local-cache: true
-          ndk-version: r21e
       - name: Download dependencies
         env:
           GH_TOKEN: ${{ github.token }}
