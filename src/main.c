@@ -65,6 +65,45 @@ int main(int argc, char* argv[]) {
         int v = MIX_Version();
         SDL_Log("SDL3_mixer version %d.%d.%d", SDL_VERSIONNUM_MAJOR(v), SDL_VERSIONNUM_MINOR(v), SDL_VERSIONNUM_MICRO(v));
     }
+
+    if (!MIX_Init()) {
+        SDL_Log("MIX_Init failed (%s)", SDL_GetError());
+        return 1;
+    }
+
+    MIX_Mixer *mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
+    if (mixer == NULL) {
+        SDL_Log("Couldn't create mixer: %s", SDL_GetError());
+        return 1;
+    }
+
+    SDL_AudioSpec mixerspec;
+    MIX_GetMixerFormat(mixer, &mixerspec);
+    SDL_Log("Mixer is format %s, %d channels, %d frequency", SDL_GetAudioFormatName(mixerspec.format), mixerspec.channels, mixerspec.freq);
+
+    SDL_Log("Available MIXER decoders:");
+    const int num_decoders = MIX_GetNumAudioDecoders();
+    if (num_decoders < 0) {
+        SDL_Log(" - [error (%s)]", SDL_GetError());
+    } else if (num_decoders == 0) {
+        SDL_Log(" - [none]");
+    } else {
+        for (int i = 0; i < num_decoders; i++) {
+            SDL_Log(" - %s", MIX_GetAudioDecoder(i));
+        }
+    }
+
+    const char *const audiofname = "audio/picked-coin-echo-2.wav";
+    MIX_Audio *audio = MIX_LoadAudio(mixer, audiofname, false);
+    if (audio == NULL) {
+        SDL_Log("Failed to load '%s' (%s)", audiofname, SDL_GetError());
+    }
+    if (audio) {
+        SDL_AudioSpec audiospec;
+        MIX_GetAudioFormat(audio, &audiospec);
+        SDL_Log("%s: %s, %d channel%s, %d freq", audiofname, SDL_GetAudioFormatName(audiospec.format),
+            audiospec.channels, (audiospec.channels == 1) ? "" : "s", audiospec.freq);
+    }
 #endif
 
 #if defined(WITH_NET)
@@ -181,6 +220,11 @@ int main(int argc, char* argv[]) {
                         locations[event.button.which].rect.x = event.button.x - RECT_W/2;
                         locations[event.button.which].rect.y = event.button.y - RECT_W/2;
                     }
+#if defined(WITH_MIXER)
+                    if (audio != NULL && !MIX_PlayAudio(mixer, audio)) {
+                        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to play audio (%s)", SDL_GetError());
+                    }
+#endif
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_UP:
                     SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse button up: which=%d, [%g, %g]", event.button.which, event.button.x, event.button.y);
@@ -266,6 +310,12 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
+
+#if defined(WITH_MIXER)
+    MIX_DestroyAudio(audio);
+    MIX_DestroyMixer(mixer);
+    MIX_Quit();
+#endif
     SDL_Quit();
     return 0;
 }
