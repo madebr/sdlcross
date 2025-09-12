@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
                     break;
 #if !defined(SDL_PLATFORM_ANDROID)
                 case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                    SDL_Log("mouse button down: which=%d, [%g, %g]", event.button.which, event.button.x, event.button.y);
+                    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse button down: which=%d, [%g, %g]", event.button.which, event.button.x, event.button.y);
                     if (event.button.which < ARRAY_SIZE(locations)) {
                         locations[event.button.which].valid = 1;
                         locations[event.button.which].rect.x = event.button.x - RECT_W/2;
@@ -183,13 +183,13 @@ int main(int argc, char* argv[]) {
                     }
                     break;
                 case SDL_EVENT_MOUSE_BUTTON_UP:
-                    SDL_Log("mouse button up: which=%d, [%g, %g]", event.button.which, event.button.x, event.button.y);
+                    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse button up: which=%d, [%g, %g]", event.button.which, event.button.x, event.button.y);
                     if (event.button.which < ARRAY_SIZE(locations)) {
                         locations[event.button.which].valid = 0;
                     }
                     break;
                 case SDL_EVENT_MOUSE_MOTION:
-                    SDL_Log("mouse move: button=%d", event.motion.which);
+                    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse move: button=%d", event.motion.which);
                     if (event.button.which < ARRAY_SIZE(locations)) {
                         locations[event.button.which].rect.x = event.motion.x - RECT_W/2;
                         locations[event.button.which].rect.y = event.motion.y - RECT_W/2;
@@ -204,28 +204,34 @@ int main(int argc, char* argv[]) {
 #endif
 #if defined(SDL_PLATFORM_ANDROID)
                 case SDL_EVENT_FINGER_DOWN:
-                    SDL_Log("finger down: fingerID=%d, [%f, %f]", (int)event.tfinger.fingerID, event.tfinger.x, event.tfinger.y);
+                    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "finger down: fingerID=%d, [%f, %f]", (int)event.tfinger.fingerID, event.tfinger.x, event.tfinger.y);
                     if (event.tfinger.fingerID >= 0 && event.tfinger.fingerID < (int)ARRAY_SIZE(locations)) {
                         locations[event.tfinger.fingerID].valid = 1;
                         locations[event.tfinger.fingerID].rect.x = width * event.tfinger.x - RECT_W/2;
                         locations[event.tfinger.fingerID].rect.y = height * event.tfinger.y - RECT_W/2;
                     }
+
+#if defined(WITH_MIXER)
+                    // Play the sound effect
+                    MIX_PlayAudio(mixer, audio);
+#endif
+
                     break;
                 case SDL_EVENT_FINGER_UP:
-                    SDL_Log("mouse button up: fingerID=%d, [%f, %f]", (int)event.tfinger.fingerID, event.tfinger.x, event.tfinger.y);
+                    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse button up: fingerID=%d, [%f, %f]", (int)event.tfinger.fingerID, event.tfinger.x, event.tfinger.y);
                     if (event.tfinger.fingerID >= 0 && event.tfinger.fingerID < (int)ARRAY_SIZE(locations)) {
                         locations[event.tfinger.fingerID].valid = 0;
                     }
                     break;
                 case SDL_EVENT_FINGER_MOTION:
-                    SDL_Log("mouse move: button=%d", event.motion.which);
+                    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse move: button=%d", event.motion.which);
                     if (event.tfinger.fingerID >= 0 && event.tfinger.fingerID < (int)ARRAY_SIZE(locations)) {
                         locations[event.tfinger.fingerID].rect.x = width * event.tfinger.x - RECT_W/2;
                         locations[event.tfinger.fingerID].rect.y = height * event.tfinger.y - RECT_W/2;
                     }
                     break;
                 case SDL_EVENT_TERMINATING:
-                    SDL_Log("Received SDL_EVENT_TERMINATING");
+                    SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Received SDL_EVENT_TERMINATING");
                     quit = 1;
                     break;
 #endif
