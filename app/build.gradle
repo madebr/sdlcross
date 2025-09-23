@@ -3,19 +3,20 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    namespace "com.example.sdlcross"
+    compileSdkVersion 36
 
     defaultConfig {
         applicationId 'com.example.sdlcross'
-        minSdk 21
-        targetSdk 33
+        minSdkVersion 21
+        targetSdkVersion 33
         versionCode 1
         versionName '1.0'
 
         externalNativeBuild {
             cmake {
                 arguments '-DANDROID_STL=c++_shared', '-DWITH_IMAGE=ON', '-DWITH_MIXER=OFF', '-DWITH_NET=OFF'
-                // abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
                 // abiFilters 'arm64-v8a'
             }
         }
