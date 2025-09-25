@@ -21,13 +21,11 @@ jobs:
         with:
           version: sdl3-head
       - name: Get project sources
-        uses: actions/checkout@v4
-      - name: Build SDL
-        uses: libsdl-org/setup-sdl@main
+        uses: actions/checkout@v5
       - name: Configure (CMake)
         run: cmake -B build
       - name: Build (CMake)
-        run: cmake --build build/
+        run: cmake --build build/ --verbose
 
   emscripten:
     name: Emscripten
@@ -35,7 +33,7 @@ jobs:
 
     steps:
       - name: Get project sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - uses: mymindstorm/setup-emsdk@master
       - name: Build SDL
         id: sdl
@@ -46,7 +44,7 @@ jobs:
       - name: Configure (CMake)
         run: cmake -B build -DCMAKE_TOOLCHAIN_FILE=${{ env.EMSDK }}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_FIND_ROOT_PATH=${{ steps.sdl.outputs.prefix }}
       - name: Build (CMake)
-        run: cmake --build build/
+        run: cmake --build build/ --verbose
 
   android:
     name: Android
@@ -54,19 +52,20 @@ jobs:
 
     steps:
       - name: Get project sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Download dependencies
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           sdl_version=3.2.22
-          sdl_mixer_version=3.2.4
+          sdl_image_version=3.2.4
 
           gh -R libsdl-org/SDL release download release-${sdl_version} -p 'SDL3-devel-*-android.zip'
-          unzip "SDL3-devel-${sdl_version}-android.zip" -d app/libs SDL3-${sdl_version}.aar
+          unzip "SDL3-devel-${sdl_version}-android.zip" -d android-project/app/libs SDL3-${sdl_version}.aar
 
-          gh -R libsdl-org/SDL_image release download release-${sdl_mixer_version} -p 'SDL3_image-devel-*-android.zip'
-          unzip "SDL3_image-devel-${sdl_mixer_version}-android.zip" -d app/libs SDL3_image-${sdl_mixer_version}.aar
+          gh -R libsdl-org/SDL_image release download release-${sdl_image_version} -p 'SDL3_image-devel-*-android.zip'
+          unzip "SDL3_image-devel-${sdl_image_version}-android.zip" -d android-project/app/libs SDL3_image-${sdl_image_version}.aar
       - name: Build gradle project
         run: |
+          cd android-project
           ./gradlew -i assembleRelease
