@@ -20,12 +20,18 @@ if(WITH_NET)
 endif()
 
 if(ANDROID)
-    enable_language(CXX)
-    add_library(sdlcross SHARED src/main.c)
-    set_target_properties(sdlcross PROPERTIES LINKER_LANGUAGE CXX)
+    function(add_sdl_executable TARGET)
+        add_library(${TARGET} SHARED ${ARGN})
+    endfunction()
 else()
-    add_executable(sdlcross src/main.c)
+    function(add_sdl_executable TARGET)
+        add_executable(${TARGET} ${ARGN})
+    endfunction()
 endif()
+
+add_sdl_executable(sdlcross
+    src/main.c
+)
 
 if(WITH_IMAGE)
     target_compile_definitions(sdlcross PRIVATE WITH_IMAGE)
