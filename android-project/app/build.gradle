@@ -15,7 +15,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=c++_shared', '-DWITH_IMAGE=ON', '-DWITH_MIXER=OFF', '-DWITH_NET=OFF'
+                arguments '-DANDROID_STL=c++_shared', '-DWITH_IMAGE=ON', '-DWITH_MIXER=OFF', '-DWITH_NET=OFF', '-DWITH_BOX2D=OFF'
                 abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
                 // abiFilters 'arm64-v8a'
             }
@@ -46,5 +46,10 @@ android {
 dependencies {
     implementation files('libs/SDL3-3.2.22.aar')
     implementation files('libs/SDL3_image-3.2.4.aar')
+
+    /* Use [create-prefab-aar.py](https://gist.github.com/madebr/3563a41ec9d287b6754c5fe764f56a1c)
+     * to creat a Android prefab archive for Box2D.
+     */
+    //implementation files('libs/box2d-3.2.0.aar')
     implementation 'androidx.appcompat:appcompat:1.5.1'
 }

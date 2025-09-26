@@ -1,3 +1,5 @@
+#include "context.h"
+
 #include <SDL3/SDL.h>
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL_main.h>
@@ -12,25 +14,13 @@
 #include <SDL3_net/SDL_net.h>
 #endif
 
-#include <stdarg.h>
-#include <stdio.h>
-
-typedef struct {
-    int width;
-    int height;
-    struct {
-        int valid;
-        SDL_FRect rect;
-    } locations[10];
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-#ifdef WITH_MIXER
-    MIX_Mixer *mixer;
-    MIX_Audio *audio;
+#if defined(WITH_BOX2D)
+#include "box2d-debug-drawer.h"
+#include <box2d/box2d.h>
 #endif
-    bool foreground;
-    bool fullscreen;
-} SdlCrossState;
+
+#include <stdarg.h>
+
 
 static const SDL_Color COLORS[10] = {
     {255, 0,   0,   0},
@@ -160,30 +150,6 @@ SDL_AppResult SDLCALL SDL_AppInit(void **appstate, int argc, char *argv[]) {
     flags |= SDL_WINDOW_FULLSCREEN;
 #endif
 
-    char title[32];
-    SDL_snprintf(title, sizeof(title), "An SDL %d.%d.%d window",
-                 SDL_VERSIONNUM_MAJOR(linked_sdl_version), SDL_VERSIONNUM_MINOR(linked_sdl_version),
-                 SDL_VERSIONNUM_MICRO(linked_sdl_version));
-    state->window = SDL_CreateWindow(
-            title,
-            state->width,
-            state->height,
-            flags
-    );
-
-    if (state->window == NULL) {
-        show_important_message(5, "Could not create window %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-    SDL_Log("Window created!");
-
-    state->renderer = SDL_CreateRenderer(state->window, NULL);
-    if (state->renderer == NULL) {
-        show_important_message(5, "Could not create renderer: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-    SDL_Log("Renderer created!");
-
 #ifdef SDL_PLATFORM_ANDROID
 #define RECT_W 250
 #else
@@ -196,6 +162,65 @@ SDL_AppResult SDLCALL SDL_AppInit(void **appstate, int argc, char *argv[]) {
     }
     state->fullscreen = false;
     state->foreground = true;
+
+#ifdef WITH_BOX2D
+    state->ppm = 30.0f;
+    state->debugDrawer = b2DefaultDebugDraw();
+    state->debugDrawer.drawShapes = true;
+    state->debugDrawer.DrawSolidPolygonFcn = drawSolidPolygon;
+    state->debugDrawer.DrawSolidCircleFcn = drawSolidCircle;
+    state->debugDrawer.context = state;
+
+    {
+        b2WorldDef worldDef = b2DefaultWorldDef();
+        worldDef.gravity = (b2Vec2){0.f, -10.f};
+        state->worldId = b2CreateWorld(&worldDef);
+    }
+
+    {
+        b2BodyDef groundBodyDef = b2DefaultBodyDef();
+        groundBodyDef.position = (b2Vec2){0.0f, -10.0f};
+        b2BodyId groundBodyId = b2CreateBody(state->worldId, &groundBodyDef);
+        b2Polygon groundBox = b2MakeBox(50.0f, 10.0f);
+        b2ShapeDef groundShapeDef = b2DefaultShapeDef();
+        b2ShapeId groundShapeId = b2CreatePolygonShape(groundBodyId, &groundShapeDef, &groundBox);
+        (void) groundShapeId;
+    }
+
+    {
+        b2BodyDef bodyDef = b2DefaultBodyDef();
+        bodyDef.type = b2_dynamicBody;
+        bodyDef.position = (b2Vec2){0.0f, 4.0f};
+        b2BodyId bodyId = b2CreateBody(state->worldId, &bodyDef);
+        b2Polygon dynamicBox = b2MakeBox(1.0f, 1.0f);
+        b2ShapeDef shapeDef = b2DefaultShapeDef();
+        shapeDef.density = 1.0f;
+        shapeDef.material.friction = 0.3f;
+        b2ShapeId boxShapeId = b2CreatePolygonShape(bodyId, &shapeDef, &dynamicBox);
+        (void)boxShapeId;
+    }
+#endif
+    char title[32];
+    SDL_snprintf(title, sizeof(title), "An SDL %d.%d.%d window",
+        SDL_VERSIONNUM_MAJOR(linked_sdl_version), SDL_VERSIONNUM_MINOR(linked_sdl_version),
+        SDL_VERSIONNUM_MICRO(linked_sdl_version));
+    state->window = SDL_CreateWindow(title, state->width, state->height, flags);
+
+    if (state->window == NULL) {
+        show_important_message(5, "Could not create window %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+    SDL_Log("Window created!");
+
+    state->renderer = SDL_CreateRenderer(state->window, NULL);
+    if (state->renderer == NULL) {
+        show_important_message(5, "Could not create renderer: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+    const SDL_PixelFormat *formats = SDL_GetPointerProperty(SDL_GetRendererProperties(state->renderer), SDL_PROP_RENDERER_TEXTURE_FORMATS_POINTER, NULL);
+    state->format = SDL_GetPixelFormatDetails(formats[0]);
+    SDL_Log("Renderer created!");
+
     show_important_message(1, "Entering the loop");
     return SDL_APP_CONTINUE;
 }
@@ -270,10 +295,10 @@ SDL_AppResult SDLCALL SDL_AppEvent(void *appstate, SDL_Event *event) {
 #if defined(SDL_PLATFORM_ANDROID)
     case SDL_EVENT_FINGER_DOWN:
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "finger down: fingerID=%d, [%f, %f]", (int)event->tfinger.fingerID, event->tfinger.x, event->tfinger.y);
-        if (event->tfinger.fingerID >= 0 && event->tfinger.fingerID < (int)SDL_arraysize(locations)) {
-            locations[event->tfinger.fingerID].valid = 1;
-            locations[event->tfinger.fingerID].rect.x = width * event->tfinger.x - RECT_W/2;
-            locations[event->tfinger.fingerID].rect.y = height * event->tfinger.y - RECT_W/2;
+        if (event->tfinger.fingerID >= 0 && event->tfinger.fingerID < (int)SDL_arraysize(state->locations)) {
+            state->locations[event->tfinger.fingerID].valid = 1;
+            state->locations[event->tfinger.fingerID].rect.x = state->width * event->tfinger.x - RECT_W/2;
+            state->locations[event->tfinger.fingerID].rect.y = state->height * event->tfinger.y - RECT_W/2;
         }
 
 #if defined(WITH_MIXER)
@@ -284,21 +309,20 @@ SDL_AppResult SDLCALL SDL_AppEvent(void *appstate, SDL_Event *event) {
         break;
     case SDL_EVENT_FINGER_UP:
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse button up: fingerID=%d, [%f, %f]", (int)event->tfinger.fingerID, event->tfinger.x, event->tfinger.y);
-        if (event->tfinger.fingerID >= 0 && event->tfinger.fingerID < (int)SDL_arraysize(locations)) {
-            locations[event->tfinger.fingerID].valid = 0;
+        if (event->tfinger.fingerID >= 0 && event->tfinger.fingerID < (int)SDL_arraysize(state->locations)) {
+            state->locations[event->tfinger.fingerID].valid = 0;
         }
         break;
     case SDL_EVENT_FINGER_MOTION:
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse move: button=%d", event->motion.which);
-        if (event->tfinger.fingerID >= 0 && event->tfinger.fingerID < (int)SDL_arraysize(locations)) {
-            locations[event->tfinger.fingerID].rect.x = width * event->tfinger.x - RECT_W/2;
-            locations[event->tfinger.fingerID].rect.y = height * event->tfinger.y - RECT_W/2;
+        if (event->tfinger.fingerID >= 0 && event->tfinger.fingerID < (int)SDL_arraysize(state->locations)) {
+            state->locations[event->tfinger.fingerID].rect.x = state->width * event->tfinger.x - RECT_W/2;
+            state->locations[event->tfinger.fingerID].rect.y = state->height * event->tfinger.y - RECT_W/2;
         }
         break;
     case SDL_EVENT_TERMINATING:
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Received SDL_EVENT_TERMINATING");
-        quit = 1;
-        break;
+        return SDL_APP_SUCCESS;
 #endif
     case SDL_EVENT_KEY_UP:
         switch (event->key.key) {
@@ -319,9 +343,22 @@ SDL_AppResult SDLCALL SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDLCALL SDL_AppIterate(void *appstate)
 {
     SdlCrossState *const state = appstate;
+
     if (state->foreground) {
+#ifdef WITH_BOX2D
+        Uint64 now = SDL_GetTicks();
+        while (now > state->nextTick) {
+            static const float timeStep = 1.0f / 60.0f;
+            static int subStepCount = 4;
+            b2World_Step(state->worldId, timeStep, subStepCount);
+            state->nextTick += (Uint64)(1000.0f * timeStep);
+        }
+#endif
         SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, 255);
         SDL_RenderClear(state->renderer);
+#ifdef WITH_BOX2D
+        b2World_Draw(state->worldId, &state->debugDrawer);
+#endif
         for (size_t i = 0; i < SDL_arraysize(state->locations); i++) {
             if (state->locations[i].valid) {
                 SDL_SetRenderDrawColor(state->renderer, COLORS[i].r, COLORS[i].g, COLORS[i].b, COLORS[i].a);
@@ -337,13 +374,25 @@ void SDLCALL SDL_AppQuit(void *appstate, SDL_AppResult result)
 {
     SdlCrossState *const state = appstate;
     (void) result;
+
+    if (state == NULL) {
+        return;
+    }
+
     SDL_DestroyRenderer(state->renderer);
     SDL_DestroyWindow(state->window);
+
+#if defined(WITH_BOX2D)
+    b2DestroyWorld(state->worldId);
+#endif
 
 #if defined(WITH_MIXER)
     MIX_DestroyAudio(state->audio);
     MIX_DestroyMixer(state->mixer);
     MIX_Quit();
 #endif
+
+    SDL_free(state);
+
     SDL_Quit();
 }
