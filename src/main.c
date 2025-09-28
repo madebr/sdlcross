@@ -156,7 +156,7 @@ SDL_AppResult SDLCALL SDL_AppInit(void **appstate, int argc, char *argv[]) {
 #define RECT_W 50
 #endif
     for (size_t i = 0; i < SDL_arraysize(state->locations); i++) {
-        state->locations[i].valid = 0;
+        state->locations[i].valid = false;
         state->locations[i].rect.w = RECT_W;
         state->locations[i].rect.h = RECT_W;
     }
@@ -261,7 +261,7 @@ SDL_AppResult SDLCALL SDL_AppEvent(void *appstate, SDL_Event *event) {
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse button down: which=%d, [%g, %g]", event->button.which,
                      event->button.x, event->button.y);
         if (event->button.which < SDL_arraysize(state->locations)) {
-            state->locations[event->button.which].valid = 1;
+            state->locations[event->button.which].valid = true;
             state->locations[event->button.which].rect.x = event->button.x - RECT_W / 2;
             state->locations[event->button.which].rect.y = event->button.y - RECT_W / 2;
         }
@@ -275,7 +275,7 @@ SDL_AppResult SDLCALL SDL_AppEvent(void *appstate, SDL_Event *event) {
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse button up: which=%d, [%g, %g]", event->button.which,
                      event->button.x, event->button.y);
         if (event->button.which < SDL_arraysize(state->locations)) {
-            state->locations[event->button.which].valid = 0;
+            state->locations[event->button.which].valid = false;
         }
         break;
     case SDL_EVENT_MOUSE_MOTION:
@@ -296,7 +296,7 @@ SDL_AppResult SDLCALL SDL_AppEvent(void *appstate, SDL_Event *event) {
     case SDL_EVENT_FINGER_DOWN:
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "finger down: fingerID=%d, [%f, %f]", (int)event->tfinger.fingerID, event->tfinger.x, event->tfinger.y);
         if (event->tfinger.fingerID >= 0 && event->tfinger.fingerID < (int)SDL_arraysize(state->locations)) {
-            state->locations[event->tfinger.fingerID].valid = 1;
+            state->locations[event->tfinger.fingerID].valid = true;
             state->locations[event->tfinger.fingerID].rect.x = state->width * event->tfinger.x - RECT_W/2;
             state->locations[event->tfinger.fingerID].rect.y = state->height * event->tfinger.y - RECT_W/2;
         }
@@ -310,7 +310,7 @@ SDL_AppResult SDLCALL SDL_AppEvent(void *appstate, SDL_Event *event) {
     case SDL_EVENT_FINGER_UP:
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "mouse button up: fingerID=%d, [%f, %f]", (int)event->tfinger.fingerID, event->tfinger.x, event->tfinger.y);
         if (event->tfinger.fingerID >= 0 && event->tfinger.fingerID < (int)SDL_arraysize(state->locations)) {
-            state->locations[event->tfinger.fingerID].valid = 0;
+            state->locations[event->tfinger.fingerID].valid = false;
         }
         break;
     case SDL_EVENT_FINGER_MOTION:

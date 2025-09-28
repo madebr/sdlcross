@@ -14,7 +14,7 @@ typedef struct {
     int width;
     int height;
     struct {
-        int valid;
+        bool valid;
         SDL_FRect rect;
     } locations[10];
     SDL_Window *window;
