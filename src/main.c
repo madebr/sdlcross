@@ -303,7 +303,7 @@ SDL_AppResult SDLCALL SDL_AppEvent(void *appstate, SDL_Event *event) {
 
 #if defined(WITH_MIXER)
         // Play the sound effect
-        MIX_PlayAudio(state->mixer, audio);
+        MIX_PlayAudio(state->mixer, state->audio);
 #endif
 
         break;
